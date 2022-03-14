@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=League+Gothic&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <title>Document</title>
+    <style>
+        form {
+            border: 1px solid black;
+            box-shadow: 5px 5px 5px black;
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="menu">
+        <a href="index.html">Index</a>
+        -
+        <a href="productos.html">Productos</a>
+        -
+        <a href="subir.html">Subir Producto</a>
+    </div>
+
+    <div id="formSubirProducto">
+        <form action="/subir2" method='POST' enctype='multipart/form-data'>
+            <img id="imgSubirProducto" src="imagenes/nuevoProducto.png" alt="Publicar Nuevo Producto">
+            <h1>Nuevo Producto</h1>
+            <p>nombre: <input type="text" name="nombre" id="nombre"></p>
+            <p>Categoria: <select name="categoria" id="categoria">
+                    <option value="Portatil">Portatil</option>
+                    <option value="Sobremesa">Sobremesa</option>
+                    <option value="Movil">Movil</option>
+                </select></p>
+            <p>Precio: <input type="text" name="precio" id="precio"></p>
+            <p>Foto:<input type="file" name="archivo" id="archivo"></p>
+            <input type="submit" value='Nuevo Producto (Por formulario)'>
+        </form>
+        <button onclick="creaProductoConImagen()">Nuevo Producto ( Por Fetch )</button>
+    </div>
+    <p></p>
+
+
+    <script>
+
+        console.log(localStorage.getItem("token"));
+        if (localStorage.getItem("token") == null) {
+            alert("No has iniciado sesión");
+            window.location.href = "/"
+        }
+        document.getElementById('archivo').addEventListener('change', event => {
+            handleImageUpload(event)
+        })
+        let files;
+        const handleImageUpload = event => {
+            files = event.target.files;
+        }
+        function creaProductoConImagen() {
+            //const files = event.target.files;
+            const formData = new FormData();
+            formData.append('nombre', document.getElementById('nombre').value);
+            formData.append('categoria', document.getElementById('categoria').value);
+            formData.append('precio', document.getElementById('precio').value);
+            formData.append('archivo', files[0]);
+            fetch(getAbsolutePath() + "subir2", {
+                method: "POST",
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data.msg)
+                    alert(data.msg)
+                })
+                .catch(error => {
+                    console.error(error)
+                    alert(error)
+                })
+        }
+
+        function getAbsolutePath() {
+            var loc = window.location;
+            var pathName = loc.pathname.substring(0, loc.pathname.lastIndexOf('/') + 1);
+            return loc.href.substring(0, loc.href.length - ((loc.pathname + loc.search + loc.hash).length - pathName.length));
+        }
+
+    </script>
+</body>
+
+</html>

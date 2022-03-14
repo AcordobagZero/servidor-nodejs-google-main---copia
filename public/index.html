@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=League+Gothic&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="menu">
+        <a href="index.html">Index</a>
+        -
+        <a href="productos.html">Productos</a>
+        -
+        <a href="subir.html">Subir Producto</a>
+        -
+        <a href="index.html" id="cerrar-sesion-google">Cerrar Sesion</a>
+    </div>
+    <div id="divLogin">
+        <img id="imagenLogin" src="imagenes/LoginImagen.png" alt="Bienvenido a Login">
+        <div id="login">
+            <label for="correo">Correo: </label>
+            <input type="email" name="correo" id="correo">
+            <label for="password">Password: </label>
+            <input type="password" name="password" id="password">
+            <button id="btnLogin">Enviar</button>
+        </div>
+        <!--Login con Google-->
+        <script src="https://accounts.google.com/gsi/client" async defer></script>
+        <div id="g_id_onload" data-client_id="1001356502886-uvhglsvig0ae882usff5vhe8lvpsn6tf.apps.googleusercontent.com"
+            data-auto_prompt="false" data-callback="handleCredentialResponse">
+        </div>
+        <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with"
+            data-shape="rectangular" data-logo_alignment="left">
+        </div>
+    </div>
+    <!--Fin Login con Google-->
+
+    <script>
+
+        let btnLogin = document.getElementById('btnLogin');
+        btnLogin.addEventListener("click", hacerLogin);
+        var myHeaders = new Headers();
+        myHeaders.append('Content-type', 'application/json; charset=UTF-8');
+        myHeaders.append('x-token', localStorage.getItem("token"));
+        function hacerLogin() {
+            fetch(getAbsolutePath() + 'login', {
+                method: 'POST',
+                body: JSON.stringify({
+                    correo: document.getElementById('correo').value,
+                    password: document.getElementById('password').value
+                }),
+                headers: myHeaders
+            })
+                .then((response) => response.json())
+                .then((json) => {
+                    if (json.token) {
+                        localStorage.setItem('token', json.token);
+                        window.location.href = getAbsolutePath() + "productos.html";
+                    }
+                })
+
+        }
+        function addTokenHeader(token) {
+            localStorage.setItem("token", token);
+            myHeaders.append('x-token', token);
+        }
+        function getAbsolutePath() {
+            var loc = window.location;
+            var pathName = loc.pathname.substring(0, loc.pathname.lastIndexOf('/') + 1);
+            return loc.href.substring(0, loc.href.length - ((loc.pathname + loc.search + loc.hash).length - pathName.length));
+        }
+
+        var boton = document.getElementById("cerrar-sesion-google");
+        boton.addEventListener("click", function () {
+            google.accounts.id.disableAutoSelect();
+            google.accounts.id.revoke(localStorage.getItem("email"));
+            localStorage.clear();
+            location.reload();
+        })
+
+        function handleCredentialResponse(response) {
+            // decodeJwtResponse() is a custom function defined by you
+            // to decode the credential response.
+            console.log(response.credential);
+            const body = { 'id_token': response.credential }
+            fetch('http://localhost:90/google', {
+                method: 'POST',
+                body: JSON.stringify(body),
+                headers: {
+                    'Content-type': 'application/json; charset=UTF-8',
+                },
+            })
+                .then((response) => response.json())
+                .then((json) => {
+                    console.log(json);
+                    localStorage.setItem("token", json.token); 
+                    localStorage.setItem("email", json.miusuario.correo);
+                    location.reload();
+                });
+        }
+    </script>
+</body>
+</html>
